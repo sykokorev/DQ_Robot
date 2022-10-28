@@ -9,23 +9,6 @@ from mathlib.vector import *
 
 if __name__ == "__main__":
 
-    # x = [1.0, 0.0, 0.0]
-    # DQx = DQ(D0=Quaternion(scalar=1.0), D1=Quaternion(vector=x))
-    # DQRot = DQ(
-    #     D0=Quaternion(scalar=math.cos(math.pi/4), 
-    #         vector=scalar_vector(scalar=math.sin(math.pi/4), vector=[0.0, 0.0, 1.0])),
-    #     D1=Quaternion()
-    # )
-    # DQTr = DQ(
-    #     D0=Quaternion(scalar=1.0), 
-    #     D1=Quaternion(vector=scalar_vector(scalar=1.5/2, vector=[0.0, 0.0, 1.0]))
-    # )
-    # DQSum = DQTr.mult(DQRot)#.mult(DQTr)
-    # x_ = DQSum.mult(DQx).mult(DQSum.conjugate())
-    # x_1 = DQSum.conjugate().mult(DQx).mult(DQSum)
-    # print(x_)
-    # print(x_1)
-
     # DH [d, teta, a, alfa]
     DH = {
         'link1': [0.1625, 0.0, 0.0, math.pi / 2],
@@ -38,18 +21,40 @@ if __name__ == "__main__":
     links = []
     for link in DH.values():
         links.append(Link(DH=link))
+       
 
     for i, link in enumerate(links, 1):
         print(f'{i}\t{link}')
 
-    DQlink1CS = DQ(
-        D0=Quaternion(scalar=1.0),
-        D1=Quaternion(vector=scalar_vector(scalar=DH['link1'][0]/2, vector=[0.0, 0.0, 1.0]))
-    )
-    DQlink2CS = DQ(
+    print()
+
+    DQlink2CSTrX = DQ(
         D0=Quaternion(scalar=1.0), D1=Quaternion(
             vector=scalar_vector(scalar=DH['link2'][2], vector=[1.0, 0.0, 0.0])
         )
+    )
+    DQlink2CSTrZ = DQ(
+        D0=Quaternion(scalar=1.0), D1=Quaternion(
+            vector=scalar_vector(scalar=DH['link2'][0], vector=[1.0, 0.0, 0.0])
+        )
+    )
+    DQlink2CSRotX = DQ(D0=Quaternion(
+                scalar=math.cos(DH['link2'][3]), 
+                vector=scalar_vector(scalar=math.sin(DH['link2'][3]), vector=[1.0, 0.0, 0.0])), 
+        D1=Quaternion()
+    )
+    DQlink2CSRotZ = DQ(D0=Quaternion(
+                scalar=math.cos(DH['link2'][1]), 
+                vector=scalar_vector(scalar=math.sin(DH['link2'][1]), vector=[1.0, 0.0, 0.0])), 
+        D1=Quaternion()
+    )
+    DQlink2CS = DQlink2CSTrX.mult(DQlink2CSTrZ).mult(DQlink2CSRotX).mult(DQlink2CSRotZ)
+    print('DQ Position CS of the Link2 in CS of the Link1')
+    print(DQlink2CS)
+
+    DQlink1CS = DQ(
+        D0=Quaternion(scalar=1.0),
+        D1=Quaternion(vector=scalar_vector(scalar=DH['link1'][0]/2, vector=[0.0, 0.0, 1.0]))
     )
     DQlink1CSRotX = DQ(D0=Quaternion(
             scalar=math.cos(DH['link1'][3]/2), 
@@ -64,8 +69,6 @@ if __name__ == "__main__":
 
     DQlink2Sum = DQlink1CSRotX.mult(DQlink1CS).mult(DQlink1CSRotZ)
     DQlink2Sum.normed()
-    DQlink2CSBase = DQlink2Sum.mult(DQlink2CS).mult(DQlink2Sum.conjugate())
-    DQlink2CSBase_ = (DQlink2Sum.conjugate()).mult(DQlink2CS).mult(DQlink2Sum)
-
+    DQlink2CSBase = (DQlink2Sum.conjugate()).mult(DQlink2CS).mult(DQlink2Sum)
+    print('DQ Position CS of the Link2 in CS of the Base Reference Frame')
     print(DQlink2CSBase)
-    print(DQlink2CSBase_)
