@@ -5,8 +5,8 @@ import mathlib.vector as vec
 
 
 class DualQuaternion:
-    def __init__(self, D0: qtrn.Quaternion=qtrn.Quaternion(), 
-                       D1: qtrn.Quaternion=qtrn.Quaternion(scalar=1.0, vector=[0.0, 0.0, 1.0]).normed()):
+    def __init__(self, D0: qtrn.Quaternion=qtrn.Quaternion(scalar=1.0, vector=[0.0, 0.0, 0.0]), 
+                       D1: qtrn.Quaternion=qtrn.Quaternion(scalar=0.0, vector=[0.0, 0.0, 0.0])):
         self.__D0 = D0
         self.__D1 = D1
 
@@ -119,3 +119,10 @@ class DualQuaternion:
         D1 = self.__D1.scalar_product(scalar=norm.Re).substraction(self.__D0.scalar_product(scalar=norm.Im))
         self.__D0 = D0
         self.__D1 = D1
+
+    @staticmethod
+    def derivate(dq: object, deldq: object, del_arg):
+        D0_derivate = qtrn.Quaternion.derivate(q=dq.D0, delq=deldq.D0, del_arg=del_arg)
+        D1_derivate = qtrn.Quaternion.derivate(q=dq.D1, delq=deldq.D1, del_arg=del_arg)
+
+        return DualQuaternion(D0=D0_derivate, D1=D1_derivate)

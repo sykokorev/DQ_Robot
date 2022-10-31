@@ -117,7 +117,7 @@ class PlotData:
         else:
             try:
                 x = [xi[0] for xi in data]
-                y = [yi[0] for yi in data]
+                y = [yi[1] for yi in data]
             except (IndexError, TypeError):
                 x = data[0]
                 y = data[1]
