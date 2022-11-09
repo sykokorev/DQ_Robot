@@ -18,6 +18,7 @@ class Link:
     joint_type: str = 'rotation'
 
     __CS_position = DQ()
+    __CS_position_BRF = DQ()
 
     @property
     def CS_position(self) -> DQ:
@@ -28,4 +29,15 @@ class Link:
         if isinstance(cs, DQ):
             self.__CS_position = cs
         else:
-            print('CS_postion wron parameter')
+            print("Wrong argument for CS position in Local reference frame")
+    
+    @property
+    def CS_position_BRF(self):
+        return self.__CS_position_BRF
+
+    @CS_position_BRF.setter
+    def CS_position_BRF(self, cs: DQ):
+        if isinstance(cs, DQ):
+            self.__CS_position_BRF = cs
+        else:
+            print("Wrong argumet for CS position in Base reference frame.")
