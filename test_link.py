@@ -14,14 +14,26 @@ if __name__ == "__main__":
         DH: dict('link_name': {
             'a': float, 'alpha': float (radians), 'd': float, 'teta': float (radians)
         })
+        All DH-Parameters were taken from the web-site https://www.universal-robots.com
+        Direct link: https://www.universal-robots.com/articles/ur/application-installation/dh-parameters-for-calculations-of-kinematics-and-dynamics/
     """
+    # UR5e
+    # DH = {
+    #     'link1': {'a': 0.0, 'alpha': math.pi/2, 'd': 0.1615, 'teta': 0.0},
+    #     'link2': {'a': -0.24355, 'alpha': 0.0, 'd': 0.0, 'teta': 0.0},
+    #     'link3': {'a': -0.2132, 'alpha': 0.0, 'd': 0.0, 'teta': 0.0},
+    #     'link4': {'a': 0.0, 'alpha': math.pi/2, 'd': 0.13105, 'teta': 0.0},
+    #     'link5': {'a': 0.0, 'alpha': -math.pi/2, 'd': 0.08535, 'teta': 0.0},
+    #     'link6': {'a': 0.0921, 'alpha': 0.0, 'd': 0.0, 'teta': 0.0}
+    # }
+    # DH-Parameters from UR Supportwebsite
     DH = {
-        'link1': {'a': 0.0, 'alpha': math.pi/2, 'd': 0.1615, 'teta': 0.0},
-        'link2': {'a': -0.24355, 'alpha': 0.0, 'd': 0.0, 'teta': 0.0},
-        'link3': {'a': -0.2132, 'alpha': 0.0, 'd': 0.0, 'teta': 0.0},
-        'link4': {'a': 0.0, 'alpha': math.pi/2, 'd': 0.13105, 'teta': 0.0},
-        'link5': {'a': 0.0, 'alpha': -math.pi/2, 'd': 0.08535, 'teta': 0.0},
-        'link6': {'a': 0.0921, 'alpha': 0.0, 'd': 0.0, 'teta': 0.0}
+        'link1': {'a': 0.0, 'alpha': 1.570796327, 'd': 0.1625, 'teta': 5.27089341},
+        'link2': {'a': -0.425, 'alpha': 0.0, 'd': 0.0, 'teta': 3.316125579},
+        'link3': {'a': -0.3922, 'alpha': 0.0, 'd': 0.0, 'teta': 1.029744259},
+        'link4': {'a': 0.0, 'alpha': 1.570796327, 'd': 0.1333, 'teta': 3.473205211},
+        'link5': {'a': 0.0, 'alpha': -1.57079633, 'd': 0.0997, 'teta': 2.094395102},
+        'link6': {'a': 0.0, 'alpha': 0.0, 'd': 0.0996, 'teta': 1.570796327}
     }
     links = []
     for i, (link, dh) in enumerate(DH.items(), 1):
@@ -69,6 +81,9 @@ if __name__ == "__main__":
         print(link.CS_position)
         print("### DQ CS position in Base reference Frame ###")
         print(link.CS_position_BRF)
+
+    for link in links:
+        print(*link.CS_position_BRF.Dual.vector)
 
     # Plotting Robot links
     data = [
