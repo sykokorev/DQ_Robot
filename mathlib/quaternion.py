@@ -55,15 +55,19 @@ class Quaternion:
             self.__v = vector
 
     @property
-    def norm(self):
+    def module(self):
         return round((self.q0 ** 2 + sum(q ** 2 for q in self.vector)) ** 0.5, 4)
+
+    @property
+    def norm(self):
+        return round(self.module ** 2, 4)
 
     def __repr__(self):
         return f'{self.__class__.__name__}\tRe: {round(self.Re, 7)}\t' \
                f'Im: [{mat.fprt_mat(m=self.Im, rnd=True, dec=7)}]\n' \
                f'{self.__class__.__name__}:\t{round(self.Re, 7)} + ({round(self.q1, 7)})i ' \
                f'+ ({round(self.q2, 5)})j + ({round(self.q3, 7)})k\n' \
-               f'Norm:\t{round(self.norm, 7)}\n'
+               f'Norm:\t{round(self.norm, 7)}\nModule:\t{round(self.module, 7)}'
 
     def conjugate(self):
         return Quaternion(scalar=self.__s, vector=vec.scalar_vector(scalar=-1, vector=self.__v))

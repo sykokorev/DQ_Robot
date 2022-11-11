@@ -55,7 +55,7 @@ if __name__ == "__main__":
             D1=Q(vector=scalar_vector(scalar=link.a/2, vector=[1.0, 0.0, 0.0]))
         )
         DQRotX = DQ(
-            D0=Q(scalar=math.cos(link.alpha/2), 
+            D0=Q(scalar=math.cos(link.alpha/2),
                 vector=scalar_vector(scalar=math.sin(link.alpha/2), vector=[1.0, 0.0, 0.0])),
             D1=Q()
         )
@@ -73,17 +73,23 @@ if __name__ == "__main__":
             # Transformation DQ in the base referece frame
             DQSum1 = DQSum1.mult(DQSum)
             link.CS_position_BRF = DQSum1.mult(link.CS_position_BRF).mult(DQSum1.conjugate())
+            link.CS_orientation_BRF = DQSum1.mult(link.CS_position_BRF)
 
-    for link in links:
-        print(f'Link {link.number}')
-        print(link)
-        print("### DQ CS position in Local reference Frame ###")
-        print(link.CS_position)
-        print("### DQ CS position in Base reference Frame ###")
-        print(link.CS_position_BRF)
+    # for link in links:
+    #     print(f'Link {link.number}')
+    #     print(link)
+    #     print("### DQ CS position in Local reference Frame ###")
+    #     print(link.CS_position)
+    #     print("### DQ CS position in Base reference Frame ###")
+    #     print(link.CS_position_BRF)
 
+    print("Cartesian coordinates:")
     for link in links:
         print(*link.CS_position_BRF.Dual.vector)
+    
+    print("Euler angles")
+    for link in links:
+        print([math.degrees(angle) for angle in link.euler_angles])
 
     # Plotting Robot links
     data = [
