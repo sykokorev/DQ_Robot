@@ -56,15 +56,15 @@ class DualQuaternion:
 
     @property
     def parameter(self):
-        return sum([q*q1 for q, q1 in zip(self.__D0.quaternion, self.__D1.quaternion)])
+        return sum([q*q1 for q, q1 in zip(self.__D0.quaternion, self.__D1.quaternion)]) / self.__D0.norm
 
     @property
     def norm(self):
-        return DN(real=self.__D0.norm, imagine=2 * self.parameter * self.__D0.norm)
-
+        return DN(real=self.__D0.norm, imagine=2*self.parameter*self.__D0.norm)
+    
     @property
     def module(self):
-        return DN(real=self.__D0.module, imagine=self.__D1.module * self.parameter)
+        return DN(real=self.__D0.module, imagine=self.__D0.module*self.parameter)
 
     @property
     def dual_quaternion(self):
@@ -125,9 +125,19 @@ class DualQuaternion:
 
     def normed(self):
         module = self.module
-        self.__D1 = (self.__D1.scalar_product(scalar=module.Re) \
-            .substraction(self.__D0.scalar_product(scalar=module.Im))).scalar_product(scalar=(1/module.Re**2))
-        self.__D0 = self.__D0.scalar_product(scalar=1/module.Re)
+        D11 = self.__D1.scalar_product(scalar=module.Re)
+        D12 = self.__D0.scalar_product(scalar=module.Im)
+        self.__D1 = (D11.substraction(D12)).scalar_product(scalar=(1/(module.Re**2)))
+        self.__D0 = self.__D0.scalar_product(scalar=(1/module.Re))
+
+    def inverse(self):
+        norm = self.norm
+        conjugate = self.quaternion_conjugate()
+        D11 = conjugate.D1.scalar_product(scalar=norm.Re)
+        D12 = conjugate.D0.scalar_product(scalar=norm.Im)
+        D1112 = D11.substraction(D12)
+        self.__D1 = D1112.scalar_product(scalar=(1/(norm.Re**2)))
+        self.__D0 = conjugate.D0.scalar_product(scalar=(1/norm.Re))
 
     @staticmethod
     def derivate(dq: object, deldq: object, del_arg):

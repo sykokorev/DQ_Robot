@@ -1,6 +1,8 @@
 import math
 import matplotlib.pyplot as plt
 
+from copy import deepcopy
+
 import mathlib.vector as vec
 from link.link import Link
 from mathlib.dual_quaternion import DualQuaternion as DQ
@@ -27,26 +29,37 @@ if __name__ == "__main__":
         links.append(Link(**pars))
 
 
-    point_local = [1.0, 2.0, 0.0]
-    cs_local = [0.0, 1.0, 2.0]
-    phi = math.radians(90)
-    axis = [0.0, 0.0, 1.0]
+    # point_local = [2.0, 1.0, 0.0]
+    # cs_local = [0.0, 1.0, 2.0]
+    # axis = [0.0, 0.0, 1.0]
 
-    Origin = DQ(D0=Q(scalar=1.0, vector=[0.0, 0.0 ,0.0]), D1=Q(scalar=0.0, vector=[0.0, 0.0, 0.0]))
+    point_local = [-3.0, 4.0, 5.0]
+    cs_local = [4.0, 2.0, 6.0]
+    axis = [1.0, 0.0, 0.0]
 
-    PointLocal = DQ(D0=Q(scalar=1.0, vector=[0.0, 0.0, 0.0]), D1=Q(scalar=0.0, vector=point_local))
-    CSLocal = DQ(D0=Q(scalar=1.0, vector=[0.0, 0.0, 0.0]), D1=Q(scalar=0.0, vector=cs_local))
-    CSRot = DQ(D0=Q(scalar=math.cos(phi), vector=vec.scalar_vector(scalar=math.sin(phi), vector=axis)),
-               D1=Q(scalar=0.0, vector=[0.0, 0.0, 0.0]))
-    
-    # CSLocal = DQ(D0=Q(scalar=1.0, vector=[0.0, 0.0, 0.0]), 
-    #              D1=Q(scalar=0.0, vector=vec.scalar_vector(scalar=0.5, vector=cs_local)))
-    # CSRot = DQ(D0=Q(scalar=math.cos(phi/2), vector=vec.scalar_vector(scalar=math.sin(phi/2), vector=axis)),
-    #            D1=Q(scalar=0.0, vector=[0.0, 0.0, 0.0]))
+    phi = math.radians(45)
+    rot_vector = vec.scalar_vector(scalar=math.sin(phi), vector=axis)
+    rot_scalar = math.cos(phi)
+    tr_vector = vec.scalar_vector(scalar=1.0, vector=cs_local)
 
-    CSLocal.normed()
-    CSRot.normed()
+    InitPoint = DQ(D0=Q(scalar=1.0, vector=[0.0, 0.0, 0.0]), D1=Q(scalar=0.0, vector=point_local))
 
-    DQSum = CSRot.mult(CSLocal)
-    PointBRF = DQSum.mult(PointLocal)
-    print(PointBRF)
+    Rot = DQ(D0=Q(scalar=rot_scalar, vector=rot_vector), D1=Q(scalar=0.0, vector=[0.0, 0.0, 0.0]))
+    Tr = DQ(D0=Q(scalar=1.0, vector=[0.0, 0.0, 0.0]), D1=Q(scalar=0.0, vector=tr_vector))
+
+    Sum = Tr.mult(Rot)
+    Sum.inverse()
+    Point = Sum.mult(InitPoint)
+    print(Point)
+
+    q0 = Point.Real.q0
+    q1 = Point.Real.q1
+    q2 = Point.Real.q2
+    q3 = Point.Real.q3
+    roll = math.atan2(2 * (q0 * q1 + q2 * q3), (1 - 2 * (q1**2 + q2**2)))
+    pitch = math.asin(2 * (q0 * q2 - q3 * q1))
+    yaw = math.atan2(2 * (q0 * q3 + q1 * q2), (1 - 2 * (q2**2 + q3**2)))
+    roll = math.degrees(roll)
+    pitch = math.degrees(pitch)
+    yaw = math.degrees(yaw)
+    print(f'{roll=}\t{pitch=}\t{yaw=}')
