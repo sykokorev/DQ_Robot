@@ -1,5 +1,6 @@
 import math
 import matplotlib.pyplot as plt
+import sys
 
 from link.link import Link
 from mathlib.dual_quaternion import DualQuaternion as DQ
@@ -28,37 +29,30 @@ if __name__ == "__main__":
     # }
     # DH-Parameters from UR Supportwebsite
     DH = {
-        'link1': {'a': 0.0, 'alpha': 1.570796327, 'd': 0.1625, 'teta': 5.27089341},
+        'link1': {'a': 0.0, 'alpha': 1.570796327, 'd': 0.1625, 'teta': 3.577924967},
         'link2': {'a': -0.425, 'alpha': 0.0, 'd': 0.0, 'teta': 3.316125579},
-        'link3': {'a': -0.3922, 'alpha': 0.0, 'd': 0.0, 'teta': 1.029744259},
+        'link3': {'a': -0.3922, 'alpha': 0.0, 'd': 0.0, 'teta': 1.640609497},
         'link4': {'a': 0.0, 'alpha': 1.570796327, 'd': 0.1333, 'teta': 3.473205211},
         'link5': {'a': 0.0, 'alpha': -1.57079633, 'd': 0.0997, 'teta': 2.094395102},
-        'link6': {'a': 0.0, 'alpha': 0.0, 'd': 0.0996, 'teta': 1.570796327}
+        'link6': {'a': 0.0, 'alpha': 0.0, 'd': 0.0996, 'teta': 2.49582083}
     }
     links = []
     for i, (link, dh) in enumerate(DH.items(), 1):
         dh['number'], dh['name'] = i, link
         links.append(Link(**dh))
 
+    DQTrX = DQ(D0=Q(scalar=1.0), D1=Q(vector=[0.0, 0.0, 0.0]))
+    DQTrZ = DQ(D0=Q(scalar=1.0), D1=Q(vector=[0.0, 0.0, 0.0]))
+    DQRotX = DQ(D0=Q(scalar=0.0, vector=[1.0, 0.0, 0.0]), D1=Q())
+    DQRotZ = DQ(D0=Q(scalar=0.0, vector=[0.0, 0.0 ,1.0]), D1=Q())
+
     for i, link in enumerate(links):
-        DQTrZ = DQ(
-            D0=Q(scalar=1.0), 
-            D1=Q(vector=scalar_vector(scalar=link.d/2, vector=[0.0, 0.0, 1.0]))
-        )
-        DQRotZ = DQ(
-            D0=Q(scalar=math.cos(link.teta/2), 
-                vector=scalar_vector(scalar=math.sin(link.teta/2), vector=[0.0, 0.0, 1.0])),
-            D1=Q()
-        )
-        DQTrX = DQ(
-            D0=Q(scalar=1.0), 
-            D1=Q(vector=scalar_vector(scalar=link.a/2, vector=[1.0, 0.0, 0.0]))
-        )
-        DQRotX = DQ(
-            D0=Q(scalar=math.cos(link.alpha/2),
-                vector=scalar_vector(scalar=math.sin(link.alpha/2), vector=[1.0, 0.0, 0.0])),
-            D1=Q()
-        )
+        DQTrX.Dual.vector = [link.a/2, 0.0, 0.0]
+        DQTrZ.Dual.vector = [0.0, 0.0, link.d/2]
+        DQRotX.Real.scalar = math.cos(link.alpha/2)
+        DQRotX.Real.vector = scalar_vector(scalar=math.sin(link.alpha/2), vector=[1.0, 0.0, 0.0])
+        DQRotZ.Real.scalar = math.cos(link.teta/2)
+        DQRotZ.Real.vector = scalar_vector(scalar=math.sin(link.teta/2), vector=[0.0, 0.0, 1.0])
         # Transformation DQ in a local reference frame
         DQSum = DQTrZ.mult(DQRotZ).mult(DQTrX).mult(DQRotX)
         
@@ -70,6 +64,7 @@ if __name__ == "__main__":
             DQSum1 = DQSum
             link.CS_position_BRF = link.CS_position
         else:
+            print(link.CS_position_BRF)
             # Transformation DQ in the base referece frame
             DQSum1 = DQSum1.mult(DQSum)
             link.CS_position_BRF = DQSum1.mult(link.CS_position_BRF).mult(DQSum1.conjugate())

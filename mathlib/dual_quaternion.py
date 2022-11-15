@@ -5,10 +5,16 @@ from mathlib.quaternion import Quaternion as Q
 from mathlib.dual_number import DualNumber as DN
 
 class DualQuaternion:
-    def __init__(self, D0: Q=Q(scalar=1.0, vector=[0.0, 0.0, 0.0]), 
-                       D1: Q=Q(scalar=0.0, vector=[0.0, 0.0, 0.0])):
-        self.__D0 = D0
-        self.__D1 = D1
+    def __init__(self, D0: Q=None, 
+                       D1: Q=None):
+        if not D0:
+            self.__D0 = Q()
+        else:
+            self.__D0 = D0
+        if not D1:
+            self.__D1 = Q()
+        else:
+            self.__D1 = D1
 
     @property
     def D0(self):
@@ -76,7 +82,9 @@ class DualQuaternion:
                f'Norm={self.norm}' \
                f'Module={self.module}' \
                f'Parameter={self.parameter}\n\n' \
-               f'D0: {self.__D0}\nD1: {self.__D1}\n'
+               f'D0: {self.__D0}\nD1: {self.__D1}\n' \
+               f'DQ: [({self.__D0.q0}) + ({self.__D0.q1})i + ({self.__D0.q2})j + ({self.__D0.q3})k] + ' \
+               f'[({self.__D1.q0}) + ({self.__D1.q1})i + ({self.__D1.q2})j + ({self.__D1.q3})k]e'
 
     def addition(self, DQ: object) -> object:
         return DualQuaternion(
@@ -105,10 +113,11 @@ class DualQuaternion:
                               D1=Q(scalar=0.0, vector=[0.0, 0.0, 0.0]))
 
     def mult(self, DQ: object) -> object:
-        return DualQuaternion(
-            D0=self.Real.mult(DQ.Real),
-            D1=(self.Real.mult(DQ.Dual).addition(self.Dual.mult(DQ.Real)))
-        )
+        Real = self.Real.mult(DQ.Real)
+        Dual1 = self.Real.mult(DQ.Dual)
+        Dual2 = self.Dual.mult(DQ.Real)
+        Dual = Dual1.addition(Dual2)
+        return DualQuaternion(D0=Real, D1=Dual)
 
     def swap(self):
         self.__D0, self.__D1 = self.__D1, self.__D0

@@ -87,12 +87,12 @@ class Quaternion:
         return Quaternion(scalar=sc, vector=vc)
 
     def mult(self, q: object) -> object:
-        sc = self.q0 * q.q0 - vec.dot(v1=self.Im, v2=q.vector)
-        v1 = vec.scalar_vector(scalar=self.scalar, vector=q.vector)
-        v2 = vec.scalar_vector(scalar=q.scalar, vector=self.vector)
-        v3 = vec.cross(v1=self.vector, v2=q.vector)
-        vc = vec.addition(v1=vec.addition(v1=v1, v2=v2), v2=v3)
-
+        sc = -self.q1 * q.q1 - self.q2 * q.q2 - self.q3 * q.q3 + self.q0 * q.q0
+        vc = [
+            self.q1 * q.q0 + self.q2 * q.q3 - self.q3 * q.q2 + self.q0 * q.q1,
+            -self.q1 * q.q3 + self.q2 * q.q0 + self.q3 * q.q1 + self.q0 * q.q2,
+            self.q1 * q.q2 - self.q2 * q.q1 + self.q3 * q.q0 + self.q0 * q.q3
+        ]
         return Quaternion(scalar=sc, vector=vc)
 
     def dot(self, q: object) -> object:
