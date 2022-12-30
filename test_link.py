@@ -64,7 +64,6 @@ if __name__ == "__main__":
             DQSum1 = DQSum
             link.CS_position_BRF = link.CS_position
         else:
-            print(link.CS_position_BRF)
             # Transformation DQ in the base referece frame
             DQSum1 = DQSum1.mult(DQSum)
             link.CS_position_BRF = DQSum1.mult(link.CS_position_BRF).mult(DQSum1.conjugate())

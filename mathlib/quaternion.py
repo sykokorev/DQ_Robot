@@ -25,7 +25,7 @@ class Quaternion:
         return self.__v
 
     @property
-    def q0(self):
+    def w(self):
         return self.__s
 
     @property
@@ -56,7 +56,7 @@ class Quaternion:
 
     @property
     def module(self):
-        return round((self.q0 ** 2 + sum(q ** 2 for q in self.vector)) ** 0.5, 4)
+        return round((self.w ** 2 + sum(q ** 2 for q in self.vector)) ** 0.5, 4)
 
     @property
     def norm(self):
@@ -77,21 +77,21 @@ class Quaternion:
         return Quaternion(scalar=self.scalar / d, vector=vec.scalar_vector(scalar=-1/d, vector=self.vector))
 
     def addition(self, q: object) -> object:
-        sc = self.__s + q.q0
+        sc = self.__s + q.w
         vc = vec.addition(v1=self.__v, v2=q.Im)
         return Quaternion(scalar=sc, vector=vc)
 
     def substraction(self, q: object) -> object:
-        sc = self.__s - q.q0
+        sc = self.__s - q.w
         vc = vec.substraction(v1=self.__v, v2=q.Im)
         return Quaternion(scalar=sc, vector=vc)
 
     def mult(self, q: object) -> object:
-        sc = -self.q1 * q.q1 - self.q2 * q.q2 - self.q3 * q.q3 + self.q0 * q.q0
+        sc = -self.q1 * q.q1 - self.q2 * q.q2 - self.q3 * q.q3 + self.w * q.w
         vc = [
-            self.q1 * q.q0 + self.q2 * q.q3 - self.q3 * q.q2 + self.q0 * q.q1,
-            -self.q1 * q.q3 + self.q2 * q.q0 + self.q3 * q.q1 + self.q0 * q.q2,
-            self.q1 * q.q2 - self.q2 * q.q1 + self.q3 * q.q0 + self.q0 * q.q3
+            self.q1 * q.w + self.q2 * q.q3 - self.q3 * q.q2 + self.w * q.q1,
+            -self.q1 * q.q3 + self.q2 * q.w + self.q3 * q.q1 + self.w * q.q2,
+            self.q1 * q.q2 - self.q2 * q.q1 + self.q3 * q.w + self.w * q.q3
         ]
         return Quaternion(scalar=sc, vector=vc)
 

@@ -154,3 +154,25 @@ class DualQuaternion:
         D1_derivate = Q.derivate(q=dq.D1, delq=deldq.D1, del_arg=del_arg)
 
         return DualQuaternion(D0=D0_derivate, D1=D1_derivate)
+
+    def DQtoRotMatrix(self):
+
+        self.normed()
+        rotation_matrix = []
+
+        rotation_matrix.append([
+            self.Real.w ** 2 + self.Real.q1 ** 2 - self.Real.q2 ** 2 - self.Real.q3 ** 2,
+            -2 * (self.Real.q1 * self.Real.q2 + self.Real.w * self.Real.q3),
+            2 * (self.Real.q1 * self.Real.q3 - self.Real.w * self.Real.q2)
+        ])
+        rotation_matrix.append([
+            2 * (self.Real.w * self.Real.q3 - self.Real.q1 * self.Real.q2),
+            self.Real.w ** 2 - self.Real.q1 ** 2+ self.Real.q2 ** 2 - self.Real.q3 ** 2,
+            -2 * (self.Real.q2 * self.Real.q3 + self.Real.w * self.Real.q1)
+        ])
+        rotation_matrix.append([
+            2 * (self.Real.q1 * self.Real.q3 + self.Real.w * self.Real.q2),
+            2 * (self.Real.w * self.Real.q1 - self.Real.q2 * self.Real.q3),
+            self.Real.w ** 2 - self.Real.q1 ** 2 - self.Real.q2 ** 2 + self.Real.q3 ** 2
+        ])
+        return rotation_matrix
