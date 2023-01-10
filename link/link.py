@@ -1,4 +1,5 @@
 import math
+import copy
 
 from dataclasses import dataclass
 
@@ -49,18 +50,17 @@ class Link:
 
     # constructor
     def __init__(self, *args):
-        self.d: float = args[0]
-        self.theta: float = args[1]
-        self.a: float = args[2]
-        self.alpha: float = args[3]
-        self.parameters = args
+        self.d = args[0]
+        self.teta = args[1]
+        self.a = args[2]
+        self.alpha = args[3]
 
     def showDetails(self, link: str='Link'):
         print(f"\t{link} : ",  end="")
-        print([round(par, 4) for par in self.parameters])
+        print([round(par, 4) for par in [self.d, self.teta, self.a, self.alpha]])
 
     def __str__(self):
-        return f"\t{round(self.d, 4)}\t{round(self.theta, 4)}\t{round(self.a, 4)}\t"\
+        return f"\t{round(self.d, 4)}\t{round(self.teta, 4)}\t{round(self.a, 4)}\t"\
             f"{round(self.alpha, 4)}\n"
 
 
@@ -71,10 +71,12 @@ class Forwardkinematics:
         self.robot = args[0]
         self.__numLinks = None
         self.__links = []
+        self.__baseDQ = DQ(D0=Q(scalar=1.0, vector=[0.0, 0.0, 0.0]), D1=Q(scalar=0.0, vector=[0.0, 0.0, 0.0]))
 
         # Position parameters
         self.__local = []
         self.__base = []
+        self.__ResDQs = []
 
         # Temporal data
         self.__RotX = DQ()
@@ -88,7 +90,11 @@ class Forwardkinematics:
         self.__numLinks = len(self.__links) + 1
         return self.__numLinks
 
-    # Setting Robot manipulators
+    @property
+    def resultDQ(self) -> list:
+        return self.__ResDQs
+
+    # Set up Robot manipulators
     def addLink(self, link: Link) -> None:
         if isinstance(link, Link):
             self.__links.append(link)
@@ -118,20 +124,25 @@ class Forwardkinematics:
 
     # Setting up Robot Initial Position
     def setInitialPosition(self):
+        self.__base.clear()
+        self.__ResDQs.clear()
+        self.__local.clear()
         for i, link in enumerate(self.__links):
             self.__RotX.Real.scalar = math.cos(link.alpha/2)
             self.__RotX.Real.vector = [math.sin(link.alpha/2), 0.0, 0.0]
-            self.__TrX.Dual.vector = [link.a, 0.0, 0.0]
-            self.__RotZ.Real.scalar = math.cos(link.theta/2)
-            self.__RotZ.Real.vector = [0.0, 0.0, math.sin(link.theta/2)]
-            self.__TrZ.Dual.vector = [0.0, 0.0, link.d]
+            self.__TrX.Dual.vector = [link.a/2, 0.0, 0.0]
+            self.__RotZ.Real.scalar = math.cos(link.teta/2)
+            self.__RotZ.Real.vector = [0.0, 0.0, math.sin(link.teta/2)]
+            self.__TrZ.Dual.vector = [0.0, 0.0, link.d/2]
 
             self.__ResDQ = self.__TrX.mult(self.__RotX).mult(self.__TrZ).mult(self.__RotZ)
             self.__local.append(self.__ResDQ)
 
             if not i:
                 self.__base.append(self.__ResDQ)
+                self.__ResDQs.append(self.__ResDQ)
             else:
+                self.__ResDQs.append(self.__ResDQ.mult(self.__ResDQs[i-1]))
                 self.__base.append(self.__ResDQ.mult(self.__base[i-1]))
 
     # Getter methods
@@ -144,11 +155,14 @@ class Forwardkinematics:
     def getLinks(self) -> list:
         return self.__links
 
+    def getPositionDQ(self) -> list :
+        return copy.copy(self.__ResDQs)
+
     def getPosition(self, sid: int) -> Position:
         try:
-            tmpQ = self.__base[sid].Real.conjugate()
-            tmpQ = tmpQ.mult(self.__base[sid].Dual)
-            position = Position(*tmpQ.vector)
+            tmpDQ = self.__ResDQs[sid].conjugate()
+            tmpDQ = tmpDQ.mult(self.__baseDQ).mult(self.__ResDQs[sid])
+            position = Position(*tmpDQ.Dual.vector)
             return position
         except (IndexError, TypeError):
             return None
@@ -194,6 +208,32 @@ class Forwardkinematics:
         for i, link in enumerate(self.__links):
             angles.append(self.getEulerAngles(i))
         return angles
+
+    def rotateLink(self, sid: int, delta_teta: float) -> None:
+        self.__links[sid].teta = delta_teta + self.__links[sid].teta
+        self.setInitialPosition()
+
+    def rotateLinks(self, delta_teta: list) -> None:
+        for i, link in enumerate(self.__links):
+            self.__links[i].teta = link.teta + delta_teta[i]
+        self.setInitialPosition()
+
+    def getAngularVelocity(self, init: list, rotated: list, del_t: float) -> list:
+
+        res = []
+        for initDQ, rotatedDQ in zip(init, rotated):
+            initDQ.normed()
+            rotatedDQ.normed()
+            res.append([
+                (2 / del_t) * (initDQ.Real.w * rotatedDQ.Real.q1 - initDQ.Real.q1 * rotatedDQ.Real.w - \
+                    initDQ.Real.q2 * rotatedDQ.Real.q3 + initDQ.Real.q3 * rotatedDQ.Real.q2),
+                (2 / del_t) * (initDQ.Real.w * rotatedDQ.Real.q2 + initDQ.Real.q1 * rotatedDQ.Real.q3 - \
+                    initDQ.Real.q2 * rotatedDQ.Real.w - initDQ.Real.q3 * rotatedDQ.Real.q1),
+                (2 / del_t) * (initDQ.Real.w * rotatedDQ.Real.q3 - initDQ.Real.q1 * rotatedDQ.Real.q2 + \
+                    initDQ.Real.q2 * rotatedDQ.Real.q1 - initDQ.Real.q3 * rotatedDQ.Real.w)
+            ])
+        
+        return res
 
     def __repr__(self) -> str:
         strout = f'{self.robot} : ['

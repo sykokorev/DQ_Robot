@@ -66,7 +66,7 @@ class Quaternion:
         return f'{self.__class__.__name__}\tRe: {round(self.Re, 7)}\t' \
                f'Im: [{mat.fprt_mat(m=self.Im, rnd=True, dec=7)}]\n' \
                f'{self.__class__.__name__}:\t{round(self.Re, 7)} + ({round(self.q1, 7)})i ' \
-               f'+ ({round(self.q2, 5)})j + ({round(self.q3, 7)})k\n' \
+               f'+ ({round(self.q2, 7)})j + ({round(self.q3, 7)})k\n' \
                f'Norm:\t{round(self.norm, 7)}\nModule:\t{round(self.module, 7)}'
 
     def conjugate(self):

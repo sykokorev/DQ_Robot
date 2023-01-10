@@ -47,3 +47,53 @@ if __name__ == "__main__":
     euler_angles = sixAxesRobot.getListEulerAngles()
 
     sixAxesRobot.showDetails()
+
+    # Simple Robot
+    print("*"*10, ' SimpleRobot ', "*"*10)
+
+    links_par = [
+        [2, math.radians(90.0), 0.0, math.radians(90.0)],
+        [1, math.radians(0), 0.0, math.radians(0.0)]
+    ]
+
+    simple_robot = Forwardkinematics("SimpleRobot")
+    for par in links_par:
+        link = Link(*par)
+        simple_robot.addLink(link)
+
+    simple_robot.setInitialPosition()
+    init = simple_robot.getPositionDQ()
+    init_position = simple_robot.getPositions()
+    euler_angles = simple_robot.getListEulerAngles()
+    print("Before rotation")
+    simple_robot.showDetails()
+
+    delta_teta = [math.radians(2.0), math.radians(1.0)]
+    delta_t = 0.1
+
+    simple_robot.rotateLinks(delta_teta)
+    rotated = simple_robot.getPositionDQ()
+    rotated_position = simple_robot.getPositions()
+
+    print("After rotation")
+    simple_robot.showDetails()
+
+    angular_velocities = simple_robot.getAngularVelocity(init=init, rotated=rotated, del_t=delta_t)
+    baseDQ = DQ(D0=Q(scalar=1.0, vector=[0.0, 0.0, 0.0]), D1=Q(scalar=0.0, vector=[0.0, 0.0, 0.0]))
+    resDQ = DQ()
+    lhs = DQ()
+    rhs = DQ()
+    diffDQ = DQ()
+    pointDQ = DQ(D0=Q(scalar=1.0, vector=[0.0, 0.0, 0.0]), D1=Q(scalar=0.0, vector=[0.0, 0.0, 0.0]))
+    pointDQ_ = DQ(D0=Q(scalar=1.0, vector=[0.0, 0.0, 0.0]), D1=Q(scalar=0.0, vector=[0.0, 0.0, 0.0]))
+
+    for i, (idq, rdq, point, rpoint, w) in enumerate(
+        zip(init, rotated, init_position, rotated_position, angular_velocities), 1):
+
+        print(f'Link {i}')
+        diffDQ = DQ.derivate(dq=idq, deldq=rdq, del_arg=delta_t)
+        pointDQ.Dual.vector = point.point
+        pointDQ_.Dual.vector = rpoint.point
+        resDQ = DQ.derivate(dq=pointDQ, deldq=pointDQ_, del_arg=delta_t)
+        print("Velocities [vx, vy, vz] : ", resDQ.Dual.vector)
+        print("Angulat velocities [wx, wy, wz] : ", w)

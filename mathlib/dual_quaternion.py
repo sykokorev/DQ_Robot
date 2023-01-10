@@ -83,8 +83,8 @@ class DualQuaternion:
                f'Module={self.module}' \
                f'Parameter={self.parameter}\n\n' \
                f'D0: {self.__D0}\nD1: {self.__D1}\n' \
-               f'DQ: [({self.__D0.q0}) + ({self.__D0.q1})i + ({self.__D0.q2})j + ({self.__D0.q3})k] + ' \
-               f'[({self.__D1.q0}) + ({self.__D1.q1})i + ({self.__D1.q2})j + ({self.__D1.q3})k]e'
+               f'DQ: [({self.__D0.w}) + ({self.__D0.q1})i + ({self.__D0.q2})j + ({self.__D0.q3})k] + ' \
+               f'[({self.__D1.w}) + ({self.__D1.q1})i + ({self.__D1.q2})j + ({self.__D1.q3})k]e'
 
     def addition(self, DQ: object) -> object:
         return DualQuaternion(
