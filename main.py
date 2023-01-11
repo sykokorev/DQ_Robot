@@ -1,7 +1,7 @@
 import math
 
 
-from link.link import Link
+from forward_kinematics.link import Link
 from mathlib.dual_quaternion import DualQuaternion as DQ
 from mathlib.quaternion import Quaternion
 from mathlib.vector import *

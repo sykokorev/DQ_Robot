@@ -2,7 +2,7 @@ import math
 import matplotlib.pyplot as plt
 import sys
 
-from link.link import Link
+from forward_kinematics.link import Link
 from mathlib.dual_quaternion import DualQuaternion as DQ
 from mathlib.quaternion import Quaternion as Q
 from mathlib.vector import scalar_vector

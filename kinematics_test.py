@@ -1,5 +1,8 @@
 import math
-from link.link import *
+
+
+from forward_kinematics import link, structs, forward_kinematics as fk
+from mathlib import dual_quaternion as DQ, quaternion as Q
 
 
 def show_matrix(m: list):
@@ -13,7 +16,7 @@ def show_matrices(ms: list):
         print()
 
 
-def show_euler_angles(angles: EulerAngles):
+def show_euler_angles(angles: structs.EulerAngles):
     print(angles.angles)
 
 
@@ -35,36 +38,35 @@ if __name__ == "__main__":
         [0.0996, math.radians(90), 0.0, 0.0]
     ]
 
-    sixAxesRobot = Forwardkinematics("6AXIS")
+    sixAxesRobot = fk.Forwardkinematics("6AXIS")
     for parameter in links_parameters:
-        link = Link(*parameter)
-        sixAxesRobot.addLink(link)
+        sixAxesRobot.addLink(link.Link(*parameter))
 
-    sixAxesRobot.setInitialPosition()
+    sixAxesRobot.setPosition()
 
     positions = sixAxesRobot.getPositions()
     rotation_matrices = sixAxesRobot.getRotationMatrices()
     euler_angles = sixAxesRobot.getListEulerAngles()
 
+    print("*"*10, f' {sixAxesRobot.robot} ', "*"*10)
     sixAxesRobot.showDetails()
 
     # Simple Robot
-    print("*"*10, ' SimpleRobot ', "*"*10)
-
     links_par = [
         [2, math.radians(90.0), 0.0, math.radians(90.0)],
         [1, math.radians(0), 0.0, math.radians(0.0)]
     ]
 
-    simple_robot = Forwardkinematics("SimpleRobot")
+    simple_robot = fk.Forwardkinematics("SimpleRobot")
     for par in links_par:
-        link = Link(*par)
-        simple_robot.addLink(link)
+        simple_robot.addLink(link.Link(*par))
 
-    simple_robot.setInitialPosition()
+    simple_robot.setPosition()
     init = simple_robot.getPositionDQ()
     init_position = simple_robot.getPositions()
     euler_angles = simple_robot.getListEulerAngles()
+
+    print("*"*10, f' {simple_robot.robot} ', "*"*10)
     print("Before rotation")
     simple_robot.showDetails()
 
@@ -79,21 +81,23 @@ if __name__ == "__main__":
     simple_robot.showDetails()
 
     angular_velocities = simple_robot.getAngularVelocity(init=init, rotated=rotated, del_t=delta_t)
-    baseDQ = DQ(D0=Q(scalar=1.0, vector=[0.0, 0.0, 0.0]), D1=Q(scalar=0.0, vector=[0.0, 0.0, 0.0]))
-    resDQ = DQ()
-    lhs = DQ()
-    rhs = DQ()
-    diffDQ = DQ()
-    pointDQ = DQ(D0=Q(scalar=1.0, vector=[0.0, 0.0, 0.0]), D1=Q(scalar=0.0, vector=[0.0, 0.0, 0.0]))
-    pointDQ_ = DQ(D0=Q(scalar=1.0, vector=[0.0, 0.0, 0.0]), D1=Q(scalar=0.0, vector=[0.0, 0.0, 0.0]))
+    baseDQ = fk.Forwardkinematics.fromPointToDQ(point=[0.0, 0.0, 0.0])
 
-    for i, (idq, rdq, point, rpoint, w) in enumerate(
-        zip(init, rotated, init_position, rotated_position, angular_velocities), 1):
+    resDQ = DQ.DualQuaternion()
+    lhs = DQ.DualQuaternion()
+    rhs = DQ.DualQuaternion()
+    diffDQ = DQ.DualQuaternion()
 
-        print(f'Link {i}')
-        diffDQ = DQ.derivate(dq=idq, deldq=rdq, del_arg=delta_t)
-        pointDQ.Dual.vector = point.point
-        pointDQ_.Dual.vector = rpoint.point
-        resDQ = DQ.derivate(dq=pointDQ, deldq=pointDQ_, del_arg=delta_t)
-        print("Velocities [vx, vy, vz] : ", resDQ.Dual.vector)
-        print("Angulat velocities [wx, wy, wz] : ", w)
+    init_points = [point.point for point in init_position]
+    rotated_points = [point.point for point in rotated_position]
+
+    linear_velocities = simple_robot.getLinearVelocity(
+        init_point=init_points, rotated_point=rotated_points, del_t=delta_t)
+
+    print("Velocities")
+    for i, (v, w) in enumerate(
+        zip(linear_velocities, angular_velocities), 1):
+
+        print(f'\tLink {i}')
+        v.showDetails()
+        w.showDetails()
